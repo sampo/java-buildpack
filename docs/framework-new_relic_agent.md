@@ -5,7 +5,7 @@ The New Relic Agent Framework causes an application to be automatically configur
   <tr>
     <td><strong>Detection Criterion</strong></td><td>Existence of a single bound New Relic service.
       <ul>
-        <li>Existence of a New Relic service is defined as the <a href="http://docs.cloudfoundry.com/docs/using/deploying-apps/environment-variable.html#VCAP_SERVICES"><code>VCAP_SERVICES</code></a> payload containing a service who's name, label or tag has <code>newrelic</code> as a substring.</li>
+        <li>Existence of a New Relic service is defined as the <a href="http://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html#VCAP-SERVICES"><code>VCAP_SERVICES</code></a> payload containing a service who's name, label or tag has <code>newrelic</code> as a substring.</li>
       </ul>
     </td>
   </tr>
@@ -23,10 +23,12 @@ The credential payload of the service may contain the following entries:
 
 | Name | Description
 | ---- | -----------
-| `licenseKey` | The license key to use when authenticating
+| `license_key` | (Optional) Either this credential or `licenseKey` must be provided. If both are provided then the value for `license_key` will always win. The license key to use when authenticating.
+| `licenseKey` | (Optional) As above.
+| `***` | (Optional) Any additional entries will be applied as a system property appended to `-Dnewrelic.config.` to allow full configuration of the agent.
 
 ## Configuration
-For general information on configuring the buildpack, refer to [Configuration and Extension][].
+For general information on configuring the buildpack, including how to specify configuration values through environment variables, refer to [Configuration and Extension][].
 
 The framework can be configured by modifying the [`config/new_relic_agent.yml`][] file in the buildpack fork.  The framework uses the [`Repository` utility support][repositories] and so it supports the [version syntax][] defined there.
 

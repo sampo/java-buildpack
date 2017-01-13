@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright 2013 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,7 +69,8 @@ module JavaBuildpack
       CONTEXT_INITIALIZER_ADDITIONAL = %w(
         org.cloudfoundry.reconfiguration.spring.CloudProfileApplicationContextInitializer
         org.cloudfoundry.reconfiguration.spring.CloudPropertySourceApplicationContextInitializer
-        org.cloudfoundry.reconfiguration.spring.CloudAutoReconfigurationApplicationContextInitializer).freeze
+        org.cloudfoundry.reconfiguration.spring.CloudAutoReconfigurationApplicationContextInitializer
+      ).freeze
 
       CONTEXT_INITIALIZER_CLASSES = 'contextInitializerClasses'.freeze
 
@@ -80,13 +81,14 @@ module JavaBuildpack
       private_constant :CONTEXT_INITIALIZER_CLASSES, :CONTEXT_LOADER_LISTENER, :DISPATCHER_SERVLET
 
       def augment(root, param_type)
-        classes_string = xpath(root, "#{param_type}[param-name[contains(text(), '#{CONTEXT_INITIALIZER_CLASSES}')]]/param-value/text()").first
+        classes_string = xpath(root, "#{param_type}[param-name[contains(text(),
+                               '#{CONTEXT_INITIALIZER_CLASSES}')]]/param-value/text()").first
         classes_string = create_param(root, param_type, CONTEXT_INITIALIZER_CLASSES, '') unless classes_string
 
         classes = classes_string.value.strip.split(/[,;\s]+/)
         classes = classes.concat CONTEXT_INITIALIZER_ADDITIONAL
 
-        classes_string.value = classes.join(',') # rubocop:disable UselessSetterCall
+        classes_string.value = classes.join(',')
       end
 
       def context_loader_listener?
@@ -94,8 +96,13 @@ module JavaBuildpack
       end
 
       def create_param(root, param_type, name, value)
-        param = REXML::Element.new param_type, root
-
+        load_on_startup = xpath(root, 'load-on-startup')
+        if load_on_startup.any?
+          param                                  = REXML::Element.new param_type
+          load_on_startup.first.previous_sibling = param
+        else
+          param = REXML::Element.new param_type, root
+        end
         param_name = REXML::Element.new 'param-name', param
         REXML::Text.new name, true, param_name
 

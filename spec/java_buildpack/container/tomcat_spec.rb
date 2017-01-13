@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright 2013 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,57 +35,72 @@ describe JavaBuildpack::Container::Tomcat do
       'lifecycle_support'      => lifecycle_support_configuration,
       'logging_support'        => logging_support_configuration,
       'access_logging_support' => access_logging_support_configuration,
-      'redis_store'            => redis_store_configuration }
+      'redis_store'            => redis_store_configuration,
+      'external_configuration' => tomcat_external_configuration }
   end
 
-  let(:tomcat_configuration) { double('tomcat-configuration') }
+  let(:tomcat_configuration) { { 'external_configuration_enabled' => false } }
 
-  let(:lifecycle_support_configuration) { double('lifecycle-support-configuration') }
+  let(:lifecycle_support_configuration) { instance_double('lifecycle-support-configuration') }
 
-  let(:logging_support_configuration) { double('logging-support-configuration') }
+  let(:logging_support_configuration) { instance_double('logging-support-configuration') }
 
-  let(:access_logging_support_configuration) { double('logging-support-configuration') }
+  let(:access_logging_support_configuration) { instance_double('logging-support-configuration') }
 
-  let(:redis_store_configuration) { double('redis-store-configuration') }
+  let(:redis_store_configuration) { instance_double('redis-store-configuration') }
 
-  it 'should detect WEB-INF',
+  let(:tomcat_external_configuration) { instance_double('tomcat_external_configuration') }
+
+  it 'detects WEB-INF',
      app_fixture: 'container_tomcat' do
 
     expect(component.supports?).to be
   end
 
-  it 'should not detect when WEB-INF is absent',
+  it 'does not detect when WEB-INF is absent',
      app_fixture: 'container_main' do
 
     expect(component.supports?).not_to be
   end
 
-  it 'should not detect when WEB-INF is present in a Java main application',
+  it 'does not detect when WEB-INF is present in a Java main application',
      app_fixture: 'container_main_with_web_inf' do
 
     expect(component.supports?).not_to be
   end
 
-  it 'should create submodules' do
-    expect(JavaBuildpack::Container::TomcatInstance)
-    .to receive(:new).with(sub_configuration_context(tomcat_configuration))
-    expect(JavaBuildpack::Container::TomcatLifecycleSupport)
-    .to receive(:new).with(sub_configuration_context(lifecycle_support_configuration))
-    expect(JavaBuildpack::Container::TomcatLoggingSupport)
-    .to receive(:new).with(sub_configuration_context(logging_support_configuration))
-    expect(JavaBuildpack::Container::TomcatAccessLoggingSupport)
-    .to receive(:new).with(sub_configuration_context(access_logging_support_configuration))
-    expect(JavaBuildpack::Container::TomcatRedisStore)
-    .to receive(:new).with(sub_configuration_context(redis_store_configuration))
-    expect(JavaBuildpack::Container::TomcatInsightSupport).to receive(:new).with(context)
+  it 'creates submodules' do
+    allow(JavaBuildpack::Container::TomcatInstance)
+      .to receive(:new).with(sub_configuration_context(tomcat_configuration))
+    allow(JavaBuildpack::Container::TomcatLifecycleSupport)
+      .to receive(:new).with(sub_configuration_context(lifecycle_support_configuration))
+    allow(JavaBuildpack::Container::TomcatLoggingSupport)
+      .to receive(:new).with(sub_configuration_context(logging_support_configuration))
+    allow(JavaBuildpack::Container::TomcatAccessLoggingSupport)
+      .to receive(:new).with(sub_configuration_context(access_logging_support_configuration))
+    allow(JavaBuildpack::Container::TomcatRedisStore)
+      .to receive(:new).with(sub_configuration_context(redis_store_configuration))
+    allow(JavaBuildpack::Container::TomcatInsightSupport).to receive(:new).with(context)
 
     component.sub_components context
   end
 
-  it 'should return command' do
+  it 'returns command' do
+    expect(component.command).to eq("test-var-2 test-var-1 #{java_home.as_env_var} JAVA_OPTS=\"test-opt-2 " \
+                                      'test-opt-1 -Dhttp.port=$PORT" exec $PWD/.java-buildpack/tomcat/bin/catalina.sh' \
+                                      ' run')
+  end
 
-    expect(component.command).to eq("#{java_home.as_env_var} JAVA_OPTS=\"test-opt-2 test-opt-1 -Dhttp.port=$PORT\" " \
-                                      '$PWD/.java-buildpack/tomcat/bin/catalina.sh run')
+  context do
+
+    let(:tomcat_configuration) { { 'external_configuration_enabled' => true } }
+
+    it 'creates submodule TomcatExternalConfiguration' do
+      allow(JavaBuildpack::Container::TomcatExternalConfiguration)
+        .to receive(:new).with(sub_configuration_context(tomcat_external_configuration))
+
+      component.sub_components context
+    end
   end
 
 end

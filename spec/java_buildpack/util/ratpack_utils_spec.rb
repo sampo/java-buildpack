@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright (c) 2013 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,31 +23,31 @@ describe JavaBuildpack::Util::RatpackUtils do
 
   let(:utils) { described_class.new }
 
-  it 'should detect a dist Ratpack application',
+  it 'detects a dist Ratpack application',
      app_fixture: 'container_ratpack_dist' do
 
     expect(utils.is?(application)).to be
   end
 
-  it 'should detect a staged Ratpack application',
+  it 'detects a staged Ratpack application',
      app_fixture: 'container_ratpack_staged' do
 
     expect(utils.is?(application)).to be
   end
 
-  it 'should not detect a non-Ratpack application',
+  it 'does not detect a non-Ratpack application',
      app_fixture: 'container_main' do
 
     expect(utils.is?(application)).not_to be
   end
 
-  it 'should determine the version a dist Ratpack application',
+  it 'determines the version a dist Ratpack application',
      app_fixture: 'container_ratpack_dist' do
 
     expect(utils.version(application)).to match(/0.9.0/)
   end
 
-  it 'should determine the version a staged Ratpack application',
+  it 'determines the version a staged Ratpack application',
      app_fixture: 'container_ratpack_staged' do
 
     expect(utils.version(application)).to match(/0.9.0/)

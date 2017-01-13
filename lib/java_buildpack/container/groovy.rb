@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright 2013 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ module JavaBuildpack
       #
       # @param [Hash] context a collection of utilities used the component
       def initialize(context)
-        @logger = JavaBuildpack::Logging::LoggerFactory.instance.get_logger Groovy
+        @logger        = JavaBuildpack::Logging::LoggerFactory.instance.get_logger Groovy
         @ratpack_utils = JavaBuildpack::Util::RatpackUtils.new
         super(context) { |candidate_version| candidate_version.check_size(3) }
       end
@@ -53,8 +53,10 @@ module JavaBuildpack
         add_libs
 
         [
+          @droplet.environment_variables.as_env_vars,
           @droplet.java_home.as_env_var,
           @droplet.java_opts.as_env_var,
+          'exec',
           qualify_path(@droplet.sandbox + 'bin/groovy', @droplet.root),
           @droplet.additional_libraries.as_classpath,
           relative_main_groovy,

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright (c) 2013 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,20 +17,34 @@
 
 # Kill script for use as the parameter of OpenJDK's -XX:OnOutOfMemoryError
 
-COMMAND='pkill -9 -f .*-XX:OnOutOfMemoryError=.*killjava.*'
-LOG_FILE="$PWD/.out-of-memory.log"
+set -e
 
-function log {
-  echo "$(date +%FT%T.%2N%z) FATAL $1" >> $LOG_FILE
-}
-
-log "Attempting to kill Java processes using '$COMMAND'"
-log "Processes Before:
+echo "
+Process Status (Before)
+=======================
 $(ps -ef)
+
+ulimit (Before)
+===============
+$(ulimit -a)
+
+Free Disk Space (Before)
+========================
+$(df -h)
 "
 
-$($COMMAND)
+pkill -9 -f .*-XX:OnOutOfMemoryError=.*killjava.*
 
-log "Processes After:
+echo "
+Process Status (After)
+======================
 $(ps -ef)
+
+ulimit (After)
+==============
+$(ulimit -a)
+
+Free Disk Space (After)
+=======================
+$(df -h)
 "

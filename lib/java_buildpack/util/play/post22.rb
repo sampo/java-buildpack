@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright (c) 2013 the original author or authors.
+# Copyright 2013-2017 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ module JavaBuildpack
             "$app_home/#{additional_library.relative_path_from(start_script.dirname)}"
           end
 
-          update_file start_script,
-                      /^declare -r app_classpath=\"(.*)\"$/, "declare -r app_classpath=\"#{additional_classpath.join(':')}:\\1\""
+          update_file start_script, /^declare -r app_classpath=\"(.*)\"$/,
+                      "declare -r app_classpath=\"#{additional_classpath.join(':')}:\\1\""
         end
 
         # (see JavaBuildpack::Util::Play::Base#java_opts)
@@ -45,10 +45,10 @@ module JavaBuildpack
           java_opts.each do |option|
             next unless option.shellsplit.length > 1 && !bash_expression?(option)
 
-            fail "Invalid Java option contains more than one option: '#{option}'"
+            raise "Invalid Java option contains more than one option: '#{option}'"
           end
 
-          java_opts.map { |java_opt| "-J#{java_opt}" }
+          java_opts.map { |option| option == '$CALCULATED_MEMORY' ? '${CALCULATED_MEMORY//-/-J-}' : "-J#{option}" }
         end
 
         # (see JavaBuildpack::Util::Play::Base#lib_dir)
@@ -65,7 +65,7 @@ module JavaBuildpack
         #
         # @return [Pathname] the root of the play application
         def root
-          fail "Method 'root' must be defined"
+          raise "Method 'root' must be defined"
         end
 
         private
